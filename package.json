@@ -46,10 +46,7 @@
     "@vue/composition-api": "^0.4.0"
   },
   "peerDependencies": {
-    "@vue/composition-api": "^0.4.0",
-    "@vuex-orm/core": "^0.34.1",
-    "cuid": "^2.1.8",
-    "traject-helper": "git+ssh://git@bitbucket.org/gbiggs/traject-helper.git"
+    "@vue/composition-api": "^0.4.0"
   },
   "dependencies": {}
 }

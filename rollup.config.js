@@ -28,7 +28,7 @@ let plugins = [
 
 let config = {
   global: {
-    external: ["vue", "@vue/composition-api", "axios"]
+    external: ["@vue/composition-api"]
   },
   input: "./src/index.js",
   output: [
@@ -36,7 +36,7 @@ let config = {
       format: "cjs",
       name: "traject-form-handler",
       file: "./dist/traject-form-handler.js",
-      external: ["vue", "@vue/composition-api", "axios"]
+      external: ["@vue/composition-api"]
       // sourceMap: true
       // dest: pkg.module,
     },
@@ -44,18 +44,10 @@ let config = {
       name: "traject-form-handler",
       file: "./dist/traject-form-handler.esm.js",
       format: "es",
-      external: ["vue", "@vue/composition-api", "axios"]
+      external: ["@vue/composition-api"]
     }
   ],
-  external: [
-    "@vue/composition-api",
-    "date-fns",
-    "traject-helper",
-    "vue",
-    "graphql-tag",
-    "vuex",
-    "fs"
-  ],
+  external: ["@vue/composition-api"],
   plugins: plugins
 };
 
