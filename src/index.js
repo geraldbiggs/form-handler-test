@@ -1,4 +1,4 @@
-import { watch, reactive, ref } from "@vue/composition-api";
+import { watch, reactive, ref, computed } from "@vue/composition-api";
 
 export const editable = {
   type: Boolean,
@@ -20,25 +20,11 @@ export const persistable = {
   default: true
 };
 
-export const toggleVisible = visible => () => {
-  visible.value = !visible.value;
-};
-
-export const toggleForm = (defaultState = false) => {
-  const visible = ref(defaultState);
-  const toggle = toggleVisible(visible);
-
-  return {
-    visible,
-    toggle
-  };
-};
-
 export const setForm = permissions => (fields, model) => {
   const passedFields = permissions.filterFields(fields, model.entity);
   const { inputs, data } = new model(passedFields);
-  const { data: state, initialize } = makeFormState(data);
-  return { inputs, state, model, data, initialize };
+  const { data: formState, initialize } = makeFormState(data);
+  return { inputs, formState, model, data, initialize };
 };
 
 export const makeFormState = formData => {
@@ -49,42 +35,34 @@ export const makeFormState = formData => {
     data = dataCache;
   };
 
-  function makeEditable(watched) {
-    return watched => (editableFn, initialFn = initialize) =>
-      watch(
-        watched,
-        value => {
-          if (value !== null) {
-            if (value === true) {
-              editableFn(data);
-            } else {
-              initialFn(data, dataCache);
-            }
-          }
-        },
-        {
-          immediate: true
-        }
-      );
-  }
-
-  return { data, makeEditable, initialize };
+  return { data, initialize };
 };
 
-export const makeFormGroup = (model, prefix = "form") => {
-  const dataCache = model.data;
-  const data = reactive(model.data);
-
-  return {
-    [prefix + "Entity"]: model.entity,
-    [prefix + "Inputs"]: reactive(model.inputs),
-    [prefix]: data
-  };
+export const makeEditable = (watched, editableFn, initialFn = initialize) => {
+  watch(
+    watched,
+    value => {
+      if (value !== null) {
+        if (value === true) {
+          editableFn(data);
+        } else {
+          initialFn(data, dataCache);
+        }
+      }
+    },
+    {
+      immediate: true
+    }
+  );
 };
 
 export const makePersistable = (persist, method) => {
   return data => {
-    if (persist) return method(data);
+    if (persist) {
+      return method(data);
+    } else {
+      return data;
+    }
   };
 };
 
@@ -107,5 +85,108 @@ export const formHandler = emit => {
     cancellable,
     completeable,
     saveable
+  };
+};
+
+export const listHandler = submittedEntries => {
+  const state = reactive({
+    currentEntry: null,
+    isFormVisible: false,
+    isEditing: false,
+    index: null,
+    indexEntries: computed(() =>
+      submittedEntries.map((x, i) => {
+        return { ...x, ...{ index: i } };
+      })
+    )
+  });
+
+  let mapReplace = (entry, entries, index) =>
+    entries.map((x, i) => {
+      if (i === index) {
+        return entry;
+      } else {
+        return x;
+      }
+    });
+
+  let getIndex = (name, value) => entries.findIndex(x => x[name] === value);
+
+  let add = () => {
+    emit("request-add");
+  };
+
+  let insert = entry => {
+    let newEntries = entries.concat(entry);
+    emit("inserted", newEntries);
+    emit("inserted-entry", entry);
+  };
+
+  let select = index => {
+    index = index;
+    isEditing = true;
+    currentEntry = entries[index];
+    emit("selected");
+  };
+
+  let clear = () => {
+    index = null;
+    isEditing = false;
+    currentEntry = {};
+    emit("cleared");
+  };
+
+  let save = data => {
+    if (isEditing === true) {
+      update(data);
+    } else {
+      insert(data);
+    }
+  };
+
+  let update = entry => {
+    if (index === null) return false;
+    let newData = mapReplace(entries, entry, index);
+
+    emit("updated", newData);
+    emit("updated-entry", entry);
+  };
+
+  let updateByIndex = (index, entry) => {
+    if (index === null) return false;
+    let newData = mapReplace(entries, entry, index);
+
+    emit("updated", newData);
+    emit("updated-entry", entry);
+  };
+
+  let selectByProperty = (name, value) => {
+    let index = getIndex(name, value);
+    select(index);
+  };
+
+  let removeByProperty = (name, value) => {
+    let index = getIndex(name, value);
+    removeEntity(index);
+  };
+
+  let removeEntity = index => {
+    let remainingEntries = entries.filter((x, key) => index !== key);
+    emit("removed", remainingEntries);
+    clear;
+  };
+
+  return {
+    entries: state,
+    removeEntity,
+    removeByProperty,
+    selectByProperty,
+    updateByIndex,
+    update,
+    save,
+    clear,
+    select,
+    insert,
+    add
   };
 };

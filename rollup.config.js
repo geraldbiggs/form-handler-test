@@ -28,15 +28,15 @@ let plugins = [
 
 let config = {
   global: {
-    external: ["@vue/composition-api"]
+    external: ["@vue/composition-api", "vue"]
   },
-  input: "./src/index.js",
+  input: "./src/toggle.js",
   output: [
     {
       format: "cjs",
       name: "traject-form-handler",
       file: "./dist/traject-form-handler.js",
-      external: ["@vue/composition-api"]
+      external: ["@vue/composition-api", "vue"]
       // sourceMap: true
       // dest: pkg.module,
     },
@@ -44,10 +44,10 @@ let config = {
       name: "traject-form-handler",
       file: "./dist/traject-form-handler.esm.js",
       format: "es",
-      external: ["@vue/composition-api"]
+      external: ["@vue/composition-api", "vue"]
     }
   ],
-  external: ["@vue/composition-api"],
+  external: ["@vue/composition-api", "vue"],
   plugins: plugins
 };
 
