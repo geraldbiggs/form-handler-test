@@ -1,4 +1,6 @@
-import { watch, reactive, ref, computed } from "@vue/composition-api";
+import Vue from "vue";
+import API, { watch, reactive, ref, computed } from "@vue/composition-api";
+Vue.use(API);
 
 export const editable = {
   type: Boolean,
@@ -18,6 +20,23 @@ export const editEntry = {
 export const persistable = {
   type: Boolean,
   default: true
+};
+
+export const toggle = visible => () => {
+  visible.value = !visible.value;
+};
+
+export const toggleForm = () => {
+  const visible = ref(false);
+
+  const toggle = () => {
+    visible.value = !visible.value;
+  };
+
+  return {
+    visible,
+    toggle
+  };
 };
 
 export const setForm = permissions => (fields, model) => {
@@ -58,11 +77,7 @@ export const makeEditable = (watched, editableFn, initialFn = initialize) => {
 
 export const makePersistable = (persist, method) => {
   return data => {
-    if (persist) {
-      return method(data);
-    } else {
-      return data;
-    }
+    if (persist) return method(data);
   };
 };
 
